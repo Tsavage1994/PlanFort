@@ -7,6 +7,7 @@
 @model PlanFort.Models.ViewModels.ViewTripsViewModel
 
 
+<<<<<<< HEAD
 <ul class="list-group">
 
     @foreach (var trip in Model.Trips)
@@ -48,15 +49,32 @@
                     <p>Event Address: @item.address </p>
                     <p> Performer  : @item.performerName</p>
                     <button type="button" class="btn btn-outline-danger" asp-controller="Delete" asp-action="DeleteEvent" asp-route-seatGeekChildId="@item.SeatGeekChildId">Delete Event</button>
+=======
+<div>
 
-                }
-            }
+    @foreach (var trip in Model.Trips)
+    {
+>>>>>>> 3283eae8fdc88eb93fa95e235522b4a8b8642260
 
+        <div class="card" style="width: 18rem;">
 
-            @foreach (var business in Model.Businesses)
-            {
-                if (business.ParentTripId == trip.TripID)
+            <div class="card-body">
+
+                <h5 class="card-title">City: @trip.City</h5>
+                <h6 class="card-text">Date: @trip.DateOfTrip</h6>
+                @foreach (var city in Model.Weather)
                 {
+                    if (city.Name.ToLower() == trip.City.ToLower())
+                    {
+                        <p class="card-text">Current Weather: @city.Temp Degrees</p>
+                        <p>Condition: @city.Description </p>
+                        break;
+                    }
+                }
+                <a class="text-danger" asp-controller="Home" asp-action="DeleteTrip" asp-route-tripId="@trip.TripID">Delete Trip</a>
+                @if (trip.IsComplete == true)
+                {
+<<<<<<< HEAD
 
                     <h6>Businesses:</h6>
                     <p>Venue Address: @business.address1 @business.address2 @business.address3</p>
@@ -69,5 +87,70 @@
             <button type="button" class="btn btn-outline-success" asp-controller="Business" asp-action="BusinessFormResult" asp-route-city="@trip.City" asp-route-TripId="@trip.TripID">Add Business</button>
         </li>
 
+=======
+                    <label>Is Trip Complete?</label>
+                    <input type="checkbox" checked onclick="return false">
+                    <br />
+                    <br />
+                }
+                else
+                {
+                    <label>Is Trip Complete?</label>
+                    <input type="checkbox" unchecked>
+                    <br />
+                    <a asp-controller="Home" asp-action="MarkTripComplete" asp-route-tripId="@trip.TripID">Mark Trip Complete</a>
+                }
+
+                <br />
+                <br />
+                <br />
+
+
+
+
+
+                <div class="card-body" style="width: 18rem;">
+                    @foreach (var item in Model.Events)
+                    {
+                        if (item.ParentTripId == trip.TripID)
+                        {
+
+                            <h3>Events:</h3>
+                            <p class="font-weight-bold">Venue Name:</p> <p> @item.name</p>
+                            <p class="font-weight-bold">Event Address:</p> <p> @item.address </p>
+                            <p class="font-weight-bold"> Performer:</p> <p> @item.performerName</p>
+                            <a class="text-danger" asp-controller="Event" asp-action="DeleteEvent" asp-route-seatGeekChildId="@item.SeatGeekChildId">Delete Event</a>
+
+
+
+                        }
+                    }
+
+
+                    @foreach (var business in Model.Businesses)
+                    {
+                        if (business.ParentTripId == trip.TripID)
+                        {
+                            <div>
+                                <h3>Businesses:</h3>
+                                <p class="font-weight-bold">Business Name:</p> <p> @business.name </p>
+                                <p class="font-weight-bold">Business Address:</p> <p> @business.address1 @business.address2 @business.address3</p>
+                                <p class="font-weight-bold"> Phone Number:</p> <p> @business.phoneNumber</p>
+                                <a class="text-danger" asp-controller="Business" asp-action="DeleteBusiness" asp-route-yelpChildId="@business.YelpChildId">Delete Business</a>
+                            </div>
+                        }
+                    }
+                    <a asp-controller="Business" asp-action="BusinessForm" asp-route-city="@trip.City" asp-route-TripId="@trip.TripID">Add Business</a>
+
+                </div>
+            </div>
+
+        </div>
+        <br />
+        <br />
+        <br />
+>>>>>>> 3283eae8fdc88eb93fa95e235522b4a8b8642260
     }
-</ul>
+
+
+</div>

@@ -30,13 +30,17 @@ namespace PlanFort.Controllers
       
         
      
-        public IActionResult BusinessForm()
+        public IActionResult BusinessForm(string city, int TripId)
         {
-            return View();
+            var viewModel = new BusinessFormVM();
+
+            viewModel.City = city;
+            viewModel.TripID = TripId;
+            return View(viewModel);
         }
-        public async Task<IActionResult> BusinessFormResult(string city, int TripId)
+        public async Task<IActionResult> BusinessFormResult(int TripID, string City, string Category)
         {
-            var response = await _yelpClient.GetBusinessByCity(city);
+            var response = await _yelpClient.GetBusinessByCity(City, Category);
 
             var viewModel = new BusinessFormResultVM();
             var results = response.businesses;
@@ -44,10 +48,10 @@ namespace PlanFort.Controllers
 
             viewModel.Businesses = results
                 .Select(results => new BusinessVM()
-                { Name = results.name, title = results.categories[0].title, id = results.id })
+                { Name = results.name, title = results.categories[0].title, id = results.id, address = results.location.address1, City = results.location.city })
                 .ToList();
 
-            viewModel.TripID = TripId;
+            viewModel.TripID = TripID;
             
 
             return View(viewModel);
@@ -84,8 +88,19 @@ namespace PlanFort.Controllers
             
             return RedirectToAction("ViewTrips", "Home");
         }
+        // Delete a business 
+        public IActionResult DeleteBusiness(int YelpChildId)
+        {
+            //varible names are lowercase 
+            YelpChildDAL businessDAL = _planFortDBContext.YelpChild
+                .Where(business => business.YelpChildId == YelpChildId)
+                .FirstOrDefault();
 
+            _planFortDBContext.Remove(businessDAL);
+            _planFortDBContext.SaveChanges();
 
+            return RedirectToAction("ViewTrips", "Home");
 
+        }
     }
 }

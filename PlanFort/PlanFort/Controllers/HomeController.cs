@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PlanFort.Data;
 using PlanFort.Models;
+using PlanFort.Models.DALModels;
 using PlanFort.Models.DomainModels;
 using PlanFort.Models.ViewModels;
 using PlanFort.Services;
@@ -76,7 +77,7 @@ namespace PlanFort.Controllers
 
             var viewModel = new ViewTripsViewModel();
             viewModel.Trips = eventHeaders
-                .Select(trip => new TripHeader() { City = trip.City, TripID = trip.TripID, IsComplete = trip.IsComplete, DateOfTrip = trip.DateOfTrip })
+                .Select(trip => new TripHeader() { City = trip.City.ToUpper(), TripID = trip.TripID, IsComplete = trip.IsComplete, DateOfTrip = trip.DateOfTrip })
                 .ToList();
 
             viewModel.Businesses = yelpChildren
@@ -87,21 +88,52 @@ namespace PlanFort.Controllers
                .Select(item => new EventChild() { name = item.name, address = item.address, city = item.city, performerName = item.performerName, performerType = item.performerType, id = item.id, ParentTripId = item.ParentTripID, SeatGeekChildId = item.SeatGeekChildId })
                .ToList();
 
-            viewModel.Weather = new List<WeatherVM>();
+            var weatherForCityTasks = viewModel.Trips.Select(trip => GetWeatherForCity(trip.City));
 
-            foreach (var trip in viewModel.Trips)
-            {
-                var response = await _openWeatherClient.GetWeather(trip.City);
-                var weather = new WeatherVM();
-                weather.Description = response.weather[0].description;
-                weather.Icon = response.weather[0].icon;
-                weather.Temp = response.main.temp;
-
-                weather.Name = response.name;
-                viewModel.Weather.Add(weather);
-            }
+            viewModel.Weather = (await Task.WhenAll(weatherForCityTasks)).ToList();            
 
             return View(viewModel);
+        }
+
+
+
+        public async Task<WeatherVM> GetWeatherForCity(string cityName)
+        {
+            var response = await _openWeatherClient.GetWeather(cityName);
+            var weather = new WeatherVM();
+            weather.Description = response.weather[0].description;
+            weather.Icon = response.weather[0].icon;
+            weather.Temp = (int)response.main.temp;
+
+            weather.Name = response.name;
+            return weather;
+        }
+
+        public IActionResult MarkTripComplete(int tripId)
+        {
+            TripParentDAL tripDAL = _planFortDBContext.TripParent
+                .Where(trip => trip.TripID == tripId)
+                .FirstOrDefault();
+            tripDAL.IsComplete = true;
+            _planFortDBContext.Update(tripDAL);
+            _planFortDBContext.SaveChanges();
+
+            return RedirectToAction("ViewTrips", "Home");
+
+        }
+
+        // Delete trip
+        public IActionResult DeleteTrip(int tripId)
+        {
+            TripParentDAL tripDAL = _planFortDBContext.TripParent
+                .Where(trip => trip.TripID == tripId)
+                .FirstOrDefault();
+
+            _planFortDBContext.Remove(tripDAL);
+            _planFortDBContext.SaveChanges();
+
+            return RedirectToAction("ViewTrips", "Home");
+
         }
 
     }
